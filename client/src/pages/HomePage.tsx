@@ -79,36 +79,19 @@ export function HomePage() {
       />
 
       {/* ── Hero slider ───────────────────────────────────────── */}
-      <section className="relative isolate min-h-[78vh] overflow-hidden bg-ink" aria-label="Featured exhibitions">
-        {slides.map((s, i) => (
-          <div
-            key={s._id}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              i === slideIndex ? 'opacity-100' : 'opacity-0'
-            }`}
-            aria-hidden={i !== slideIndex}
-          >
-            {s.image ? (
-              <img
-                src={s.image}
-                alt={s.caption || 'Lavish Events exhibition'}
-                className="h-full w-full object-cover"
-                loading={i === 0 ? 'eager' : 'lazy'}
-              />
-            ) : null}
-            <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/65 to-ink/20" />
-          </div>
-        ))}
+      <section className="relative isolate overflow-hidden bg-ink text-cream" aria-label="Featured exhibitions">
+        <div className="pointer-events-none absolute -left-40 -top-32 h-[520px] w-[520px] rounded-full bg-brand-600/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 right-0 h-[420px] w-[420px] rounded-full bg-brand-400/10 blur-3xl" />
 
-        <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-10">
-          <div className="max-w-3xl">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:gap-16 lg:px-10 lg:py-20">
+          <div className="lg:col-span-7">
             <p className="text-[11px] font-medium uppercase tracking-[0.42em] text-brand-300">
               Irfaana · Zainab · Shazia
             </p>
-            <h1 className="mt-5 font-display text-5xl font-medium leading-[0.95] text-cream sm:text-7xl lg:text-[6rem]">
+            <h1 className="mt-5 font-display text-5xl font-medium leading-[0.95] sm:text-6xl lg:text-7xl">
               {settings.hero.headline || 'Where style meets celebration.'}
             </h1>
-            <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-cream/75 sm:text-lg">
+            <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-cream/70 sm:text-lg">
               {settings.hero.subheadline}
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
@@ -118,31 +101,95 @@ export function HomePage() {
               <WhatsAppButton
                 message="Hi Lavish Events! I would like to know about your upcoming exhibitions."
                 label="Join the WhatsApp list"
-                className="!bg-transparent !border !border-cream/40 hover:!bg-cream/10"
+                className="!border !border-cream/40 !bg-transparent hover:!bg-cream/10"
               />
+            </div>
+
+            <div className="mt-11 flex flex-wrap gap-x-10 gap-y-5 border-t border-cream/15 pt-7">
+              {[
+                { value: '120+', label: 'Exhibitions hosted' },
+                { value: '39.7K', label: 'Community' },
+                { value: '100%', label: 'Curated stalls' },
+              ].map((s) => (
+                <div key={s.label}>
+                  <p className="font-display text-3xl font-medium text-brand-300">{s.value}</p>
+                  <p className="mt-1 text-[9px] uppercase tracking-[0.22em] text-cream/45">{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Slider controls */}
-          <div className="mt-14 flex items-end justify-between gap-6">
-            <div className="flex items-center gap-3">
-              {slides.length > 1
-                ? slides.map((s, i) => (
+          {/* Portrait slider — Instagram imagery sits in a full 4:5 / 9:16 frame, never stretched */}
+          <div className="lg:col-span-5">
+            <div className="relative mx-auto w-full max-w-[330px] sm:max-w-[360px]">
+              <div className="absolute -left-3 -top-3 h-full w-full border border-brand-400/40" aria-hidden="true" />
+              <div className="relative aspect-[9/16] overflow-hidden bg-brand-950 shadow-2xl">
+                {slides.map((s, i) => (
+                  <div
+                    key={s._id}
+                    className={`absolute inset-0 transition-opacity duration-700 ${
+                      i === slideIndex ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    aria-hidden={i !== slideIndex}
+                  >
+                    {s.image ? (
+                      <img
+                        src={s.image}
+                        alt={s.caption || 'Lavish Events exhibition'}
+                        className="h-full w-full object-cover object-center"
+                        loading={i === 0 ? 'eager' : 'lazy'}
+                      />
+                    ) : null}
+                  </div>
+                ))}
+
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent p-5 pt-16">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.26em] text-brand-300">
+                    {String(slideIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+                  </p>
+                  <p className="mt-1.5 line-clamp-2 font-display text-lg leading-snug text-cream">
+                    {current?.caption || 'Curated by Lavish Events'}
+                  </p>
+                </div>
+
+                {slides.length > 1 ? (
+                  <div className="absolute right-4 top-4 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSlideIndex((i) => (i - 1 + slides.length) % slides.length)}
+                      className="flex h-8 w-8 items-center justify-center border border-cream/40 bg-ink/30 text-cream backdrop-blur transition-colors hover:bg-cream hover:text-ink"
+                      aria-label="Previous slide"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSlideIndex((i) => (i + 1) % slides.length)}
+                      className="flex h-8 w-8 items-center justify-center border border-cream/40 bg-ink/30 text-cream backdrop-blur transition-colors hover:bg-cream hover:text-ink"
+                      aria-label="Next slide"
+                    >
+                      →
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+
+              {slides.length > 1 ? (
+                <div className="mt-5 flex items-center justify-center gap-2">
+                  {slides.map((s, i) => (
                     <button
                       key={s._id}
                       type="button"
                       onClick={() => setSlideIndex(i)}
                       aria-label={`Go to slide ${i + 1}`}
                       className={`h-px transition-all ${
-                        i === slideIndex ? 'w-12 bg-brand-300' : 'w-5 bg-cream/30 hover:bg-cream/60'
+                        i === slideIndex ? 'w-10 bg-brand-300' : 'w-4 bg-cream/25 hover:bg-cream/50'
                       }`}
                     />
-                  ))
-                : null}
+                  ))}
+                </div>
+              ) : null}
             </div>
-            <p className="hidden text-[10px] uppercase tracking-[0.24em] text-cream/50 sm:block">
-              {current?.caption || 'Curated by Lavish Events'}
-            </p>
           </div>
         </div>
       </section>
