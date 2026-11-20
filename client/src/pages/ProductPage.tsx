@@ -1,15 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { publicApi } from '@/api/endpoints';
 import { useApi } from '@/hooks/useApi';
-import { useCart } from '@/context/CartContext';
 import { useSettings } from '@/context/SettingsContext';
 import { buildSingleProductMessage } from '@/lib/whatsapp';
 import { trackEvent } from '@/lib/analytics';
-import { formatPrice } from '@/lib/format';
 import { PlaceholderImage } from '@/components/PlaceholderImage';
-import { FloralDivider } from '@/components/FloralDivider';
-import { ProductCard, WhatsAppGlyph } from '@/components/ProductCard';
+import { ProductCard } from '@/components/ProductCard';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { Stars } from '@/components/Stars';
 import { Seo } from '@/components/seo/Seo';
@@ -17,7 +14,6 @@ import { EmptyState } from '@/components/EmptyState';
 
 export function ProductPage() {
   const { slug = '' } = useParams();
-  const { addItem } = useCart();
   const { settings } = useSettings();
 
   const { data, loading, error } = useApi(
@@ -32,41 +28,22 @@ export function ProductPage() {
 
   const product = data;
   const [activeImage, setActiveImage] = useState(0);
-  const [variantName, setVariantName] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  // Reset selections when the product changes.
   useEffect(() => {
     setActiveImage(0);
-    setQuantity(1);
     setLightboxOpen(false);
   }, [slug]);
-
-  useEffect(() => {
-    if (product?.variants.length) {
-      setVariantName((prev) =>
-        prev && product.variants.some((v) => v.name === prev) ? prev : product.variants[0].name
-      );
-    } else {
-      setVariantName(null);
-    }
-  }, [product?.variants]);
 
   useEffect(() => {
     if (product) trackEvent({ type: 'product_view', productSlug: product.slug });
   }, [product?.slug]);
 
-  const selectedVariant = useMemo(
-    () => product?.variants.find((v) => v.name === variantName) ?? null,
-    [product, variantName]
-  );
-
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-2">
-          <div className="skeleton aspect-square" />
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-10">
+        <div className="grid gap-10 lg:grid-cols-2">
+          <div className="skeleton aspect-[4/5]" />
           <div className="space-y-4">
             <div className="skeleton h-8 w-3/4" />
             <div className="skeleton h-6 w-1/3" />
@@ -82,47 +59,35 @@ export function ProductPage() {
       <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
         <EmptyState
           icon="error"
-          title="Product not found"
-          description={error ?? 'It may have been removed or renamed.'}
-          action={<Link to="/shop" className="btn-primary">Back to Shop</Link>}
+          title="Exhibition not found"
+          description={error ?? 'It may have ended or been renamed.'}
+          action={<Link to="/shop" className="btn-primary">Back to Exhibitions</Link>}
         />
       </div>
     );
   }
 
-  const outOfStock = product.stockStatus === 'out_of_stock';
-  const variantOutOfStock = selectedVariant?.stockStatus === 'out_of_stock';
-  const canOrder = !outOfStock && !variantOutOfStock;
-
-  const effectivePrice = selectedVariant?.price ?? product.price;
-
   const orderMessage = buildSingleProductMessage(settings, {
     productName: product.name,
-    variantName: selectedVariant?.name ?? null,
-    quantity,
-    price: effectivePrice,
+    variantName: null,
+    quantity: 1,
+    price: null,
   });
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Product',
+    '@type': 'Event',
     name: product.name,
     description: product.description || undefined,
     image: product.images.length ? product.images : undefined,
-    sku: product._id,
-    brand: { '@type': 'Brand', name: settings.businessName },
-    ...(effectivePrice !== null
-      ? {
-          offers: {
-            '@type': 'Offer',
-            price: effectivePrice,
-            priceCurrency: 'INR',
-            availability: outOfStock
-              ? 'https://schema.org/OutOfStock'
-              : 'https://schema.org/InStock',
-          },
-        }
-      : {}),
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    offers: {
+      '@type': 'Offer',
+      price: 0,
+      priceCurrency: 'INR',
+      availability: 'https://schema.org/InStock',
+    },
+    organizer: { '@type': 'Organization', name: settings.businessName },
   };
 
   return (
@@ -131,18 +96,17 @@ export function ProductPage() {
         title={product.seoTitle || product.name}
         description={product.seoDescription || product.description.slice(0, 160)}
         canonicalPath={`/product/${product.slug}`}
-        ogType="product"
+        ogType="article"
         imageUrl={product.images[0]}
         jsonLd={jsonLd}
       />
 
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        {/* Breadcrumbs */}
-        <nav aria-label="Breadcrumb" className="text-xs text-ink-soft">
-          <ol className="flex flex-wrap items-center gap-1.5">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
+        <nav aria-label="Breadcrumb" className="text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+          <ol className="flex flex-wrap items-center gap-2">
             <li><Link to="/" className="hover:text-brand-700">Home</Link></li>
             <li aria-hidden="true">/</li>
-            <li><Link to="/shop" className="hover:text-brand-700">Shop</Link></li>
+            <li><Link to="/shop" className="hover:text-brand-700">Exhibitions</Link></li>
             {product.category ? (
               <>
                 <li aria-hidden="true">/</li>
@@ -154,16 +118,16 @@ export function ProductPage() {
               </>
             ) : null}
             <li aria-hidden="true">/</li>
-            <li aria-current="page" className="font-medium text-ink">{product.name}</li>
+            <li aria-current="page" className="text-ink">{product.name}</li>
           </ol>
         </nav>
 
-        <div className="mt-6 grid gap-10 md:grid-cols-2">
+        <div className="mt-8 grid gap-10 lg:grid-cols-2">
           {/* Gallery */}
           <div>
             <button
               type="button"
-              className="relative block aspect-square w-full overflow-hidden rounded-blob bg-brand-50"
+              className="relative block aspect-[4/5] w-full overflow-hidden bg-brand-50"
               onClick={() => setLightboxOpen(true)}
               aria-label="Open image gallery"
             >
@@ -185,8 +149,8 @@ export function ProductPage() {
                     key={img}
                     type="button"
                     onClick={() => setActiveImage(i)}
-                    className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-colors ${
-                      i === activeImage ? 'border-brand-500' : 'border-transparent'
+                    className={`h-16 w-16 shrink-0 overflow-hidden border transition-colors ${
+                      i === activeImage ? 'border-brand-600' : 'border-transparent opacity-70'
                     }`}
                     aria-label={`Show image ${i + 1}`}
                     aria-pressed={i === activeImage}
@@ -199,122 +163,76 @@ export function ProductPage() {
           </div>
 
           {/* Details */}
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              {product.bestseller && <span className="badge-pink">Bestseller</span>}
-              {product.featured && <span className="badge-leaf">Featured</span>}
-              {outOfStock && <span className="badge-stone">Out of stock</span>}
-            </div>
+          <div className="flex flex-col justify-center">
+            <p className="eyebrow">{product.category?.name ?? 'Lavish Events'}</p>
+            <h1 className="mt-3 font-display text-4xl font-medium leading-[1.05] sm:text-6xl">
+              {product.name}
+            </h1>
+            <p className="mt-4 text-sm font-medium uppercase tracking-[0.18em] text-brand-700">
+              {product.size}
+            </p>
+            <p className="mt-2 text-sm font-light text-ink-soft">{product.howToUse.split('\n')[1]}</p>
 
-            <h1 className="mt-3 font-display text-3xl font-bold text-ink sm:text-4xl">{product.name}</h1>
+            <p className="mt-7 whitespace-pre-line text-sm font-light leading-relaxed text-ink-soft">
+              {product.description}
+            </p>
 
-            <p className="mt-2 text-2xl font-bold text-brand-700">{formatPrice(effectivePrice)}</p>
-            {product.compareAtPrice && effectivePrice !== null && product.compareAtPrice > effectivePrice ? (
-              <p className="mt-1 text-sm text-ink-soft">
-                <s>{formatPrice(product.compareAtPrice)}</s>{' '}
-                <span className="font-semibold text-leaf-600">
-                  Save {formatPrice(product.compareAtPrice - (effectivePrice ?? 0))}
-                </span>
-              </p>
-            ) : null}
-            {product.size ? <p className="mt-1 text-sm text-ink-soft">{product.size}</p> : null}
-
-            {product.variants.length > 0 && (
-              <fieldset className="mt-6">
-                <legend className="label">Choose an option</legend>
-                <div className="flex flex-wrap gap-2">
-                  {product.variants.map((v) => (
-                    <button
-                      key={v.name}
-                      type="button"
-                      onClick={() => setVariantName(v.name)}
-                      disabled={v.stockStatus === 'out_of_stock'}
-                      aria-pressed={variantName === v.name}
-                      className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                        variantName === v.name
-                          ? 'border-brand-600 bg-brand-600 text-white'
-                          : 'border-brand-200 bg-white text-ink hover:border-brand-400'
-                      } ${v.stockStatus === 'out_of_stock' ? 'cursor-not-allowed line-through opacity-50' : ''}`}
-                    >
-                      {v.name}
-                      {v.price !== null ? ` · ${formatPrice(v.price)}` : ''}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-
-            <div className="mt-6 flex items-center gap-3">
-              <div className="flex items-center rounded-full border border-brand-200 bg-white">
-                <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="px-4 py-2.5 text-ink-soft hover:text-brand-700" aria-label="Decrease quantity">−</button>
-                <span className="min-w-[2rem] text-center font-semibold" aria-live="polite">{quantity}</span>
-                <button type="button" onClick={() => setQuantity((q) => Math.min(99, q + 1))} className="px-4 py-2.5 text-ink-soft hover:text-brand-700" aria-label="Increase quantity">+</button>
-              </div>
-
-              <button
-                type="button"
-                disabled={!canOrder}
-                onClick={() => addItem(product, { variantName, quantity })}
-                className="btn-outline flex-1"
+            <div className="mt-8 flex flex-wrap gap-3">
+              <WhatsAppButton
+                message={orderMessage}
+                event="order_whatsapp_click"
+                productSlug={product.slug}
+                label="Enquire on WhatsApp"
+                size="lg"
+              />
+              <a
+                href={settings.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline"
               >
-                Add to Cart
-              </button>
+                View on Instagram
+              </a>
             </div>
 
-            <div className="mt-3">
-              {canOrder ? (
-                <WhatsAppButton
-                  message={orderMessage}
-                  event="order_whatsapp_click"
-                  productSlug={product.slug}
-                  label="Order Now on WhatsApp"
-                  className="w-full"
-                  size="lg"
-                />
-              ) : (
-                <span className="btn-whatsapp w-full cursor-not-allowed justify-center opacity-60" aria-disabled="true">
-                  <WhatsAppGlyph /> Currently unavailable
-                </span>
-              )}
+            <div className="mt-8 grid grid-cols-2 gap-px border border-brand-200 bg-brand-200 text-center sm:grid-cols-4">
+              {[
+                { k: 'Entry', v: 'Free' },
+                { k: 'Dates', v: 'See above' },
+                { k: 'Stalls', v: 'Curated' },
+                { k: 'City', v: 'Mumbai / Bhavnagar' },
+              ].map((x) => (
+                <div key={x.k} className="bg-cream p-3">
+                  <p className="text-[9px] uppercase tracking-[0.18em] text-ink-soft">{x.k}</p>
+                  <p className="mt-1 text-xs font-medium text-ink">{x.v}</p>
+                </div>
+              ))}
             </div>
-
-            {outOfStock ? (
-              <p className="mt-3 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800">
-                This product is currently out of stock — message us on WhatsApp to know when it's back.
-              </p>
-            ) : null}
-
-            {product.description ? (
-              <div className="mt-8">
-                <h2 className="font-display text-lg font-semibold">Description</h2>
-                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-soft">{product.description}</p>
-              </div>
-            ) : null}
           </div>
         </div>
 
-        {/* Detail tabs */}
-        <section className="mt-14 grid gap-10 md:grid-cols-2" aria-label="Product information">
-          <div className="space-y-8">
+        {/* Detail sections */}
+        <section className="mt-16 grid gap-10 border-t border-brand-200 pt-12 md:grid-cols-2" aria-label="Exhibition information">
+          <div className="space-y-10">
             {product.ingredients.length > 0 && (
               <div>
-                <h2 className="font-display text-xl font-semibold">Ingredients</h2>
-                <FloralDivider className="mt-2 justify-start" />
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {product.ingredients.map((ing) => (
-                    <li key={ing} className="rounded-full bg-leaf-50 px-3 py-1 text-xs font-medium text-leaf-700">{ing}</li>
+                <h2 className="font-display text-3xl font-medium">What you'll find</h2>
+                <ul className="mt-4 grid grid-cols-2 gap-3">
+                  {product.ingredients.map((item) => (
+                    <li key={item} className="border-l border-brand-400 pl-3 text-sm font-light text-ink-soft">
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
             {product.benefits.length > 0 && (
               <div>
-                <h2 className="font-display text-xl font-semibold">Benefits & Uses</h2>
-                <FloralDivider className="mt-2 justify-start" />
-                <ul className="mt-3 space-y-2">
+                <h2 className="font-display text-3xl font-medium">Why visit</h2>
+                <ul className="mt-4 space-y-3">
                   {product.benefits.map((b) => (
-                    <li key={b} className="flex gap-2 text-sm text-ink-soft">
-                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" aria-hidden="true" />
+                    <li key={b} className="flex gap-3 text-sm font-light text-ink-soft">
+                      <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand-500" aria-hidden="true" />
                       {b}
                     </li>
                   ))}
@@ -322,19 +240,22 @@ export function ProductPage() {
               </div>
             )}
           </div>
-          <div className="space-y-8">
+
+          <div className="space-y-10">
             {product.howToUse && (
               <div>
-                <h2 className="font-display text-xl font-semibold">How to Use</h2>
-                <FloralDivider className="mt-2 justify-start" />
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink-soft">{product.howToUse}</p>
+                <h2 className="font-display text-3xl font-medium">Venue &amp; timings</h2>
+                <p className="mt-4 whitespace-pre-line text-sm font-light leading-relaxed text-ink-soft">
+                  {product.howToUse}
+                </p>
               </div>
             )}
             {product.warnings && (
-              <div>
-                <h2 className="font-display text-xl font-semibold">Care & Notes</h2>
-                <FloralDivider className="mt-2 justify-start" />
-                <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">{product.warnings}</p>
+              <div className="border border-brand-300 bg-brand-50 p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-800">
+                  Good to know
+                </p>
+                <p className="mt-2 text-sm font-light leading-relaxed text-brand-900">{product.warnings}</p>
               </div>
             )}
           </div>
@@ -342,26 +263,31 @@ export function ProductPage() {
 
         {/* Reviews */}
         {reviews.data?.length ? (
-          <section className="mt-14" aria-labelledby="pdp-reviews">
-            <h2 id="pdp-reviews" className="section-title">Customer Reviews</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {reviews.data.slice(0, 6).map((r) => (
-                <figure key={r._id} className="card p-6">
+          <section className="mt-16 border-t border-brand-200 pt-12" aria-labelledby="pdp-reviews">
+            <h2 id="pdp-reviews" className="section-title">Kind words</h2>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {reviews.data.slice(0, 3).map((r) => (
+                <figure key={r._id} className="border border-brand-200 p-6">
                   <Stars rating={r.rating} />
-                  <blockquote className="mt-3 text-sm leading-relaxed text-ink-soft">“{r.text}”</blockquote>
-                  <figcaption className="mt-3 text-sm font-semibold">— {r.customerName}</figcaption>
+                  <blockquote className="mt-3 text-sm font-light leading-relaxed text-ink-soft">“{r.text}”</blockquote>
+                  <figcaption className="mt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-700">
+                    {r.customerName}
+                  </figcaption>
                 </figure>
               ))}
             </div>
           </section>
         ) : null}
 
-        {/* Related products */}
+        {/* Related */}
         {related.data?.length ? (
-          <section className="mt-14" aria-labelledby="related-heading">
-            <h2 id="related-heading" className="section-title">You May Also Like</h2>
-            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {related.data.map((p) => <ProductCard key={p._id} product={p} />)}
+          <section className="mt-16 border-t border-brand-200 pt-12" aria-labelledby="related-heading">
+            <div className="flex items-end justify-between gap-4">
+              <h2 id="related-heading" className="section-title">More from Lavish</h2>
+              <Link to="/shop" className="btn-outline">View all</Link>
+            </div>
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {related.data.slice(0, 3).map((p) => <ProductCard key={p._id} product={p} />)}
             </div>
           </section>
         ) : null}
@@ -370,36 +296,21 @@ export function ProductPage() {
       {/* Lightbox */}
       {lightboxOpen && product.images.length > 0 && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/80 p-4 animate-fade-in"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/90 p-4 animate-fade-in"
           role="dialog"
           aria-modal="true"
           aria-label={`${product.name} image gallery`}
           onClick={() => setLightboxOpen(false)}
         >
-          <button type="button" className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Close gallery">
-            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" /></svg>
+          <button type="button" className="absolute right-4 top-4 p-2 text-cream hover:text-brand-300" aria-label="Close gallery">
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" /></svg>
           </button>
           <img
             src={product.images[activeImage]}
             alt={`${product.name} — image ${activeImage + 1}`}
-            className="max-h-[85vh] max-w-full rounded-blob object-contain"
+            className="max-h-[85vh] max-w-full object-contain"
             onClick={(e) => e.stopPropagation()}
           />
-          {product.images.length > 1 && (
-            <div className="absolute bottom-6 flex gap-2" onClick={(e) => e.stopPropagation()}>
-              {product.images.map((img, i) => (
-                <button
-                  key={img}
-                  type="button"
-                  onClick={() => setActiveImage(i)}
-                  className={`h-12 w-12 overflow-hidden rounded-lg border-2 ${i === activeImage ? 'border-brand-400' : 'border-transparent opacity-60'}`}
-                  aria-label={`Show image ${i + 1}`}
-                >
-                  <img src={img} alt="" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </>

@@ -1,19 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { publicApi } from '@/api/endpoints';
+import { demoSettings } from '@/lib/demoData';
 import type { PublicSettings } from '@/types';
 
-const FALLBACK_SETTINGS: PublicSettings = {
-  businessName: 'Lavish Events',
-  whatsappNumber: '',
-  instagramUrl: '',
-  email: '',
-  mapsUrl: '',
-  whatsappTemplate: '',
-  whatsappSingleProductTemplate: '',
-  hero: { headline: '', subheadline: '', imageUrl: '' },
-  about: { intro: '', story: '', founderImageUrl: '' },
-  announcements: { enabled: false, text: '' },
-};
+const FALLBACK_SETTINGS: PublicSettings = demoSettings;
 
 interface SettingsContextValue {
   settings: PublicSettings;

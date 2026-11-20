@@ -71,7 +71,10 @@ export function normalizeWhatsAppNumber(raw: string): string {
  * lingering on a blank page. The number and message are unchanged.
  */
 export function buildWhatsAppLink(settings: PublicSettings, message: string): string | null {
-  const number = normalizeWhatsAppNumber(settings.whatsappNumber ?? '');
+  const raw = (settings.whatsappNumber ?? '').trim();
+  // Support a WhatsApp group invite link as well as a phone number.
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const number = normalizeWhatsAppNumber(raw);
   if (!number) return null;
   // An empty message would open a chat with no order details — never send one.
   if (!message.trim()) return null;

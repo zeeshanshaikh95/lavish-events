@@ -1,10 +1,13 @@
 # Lavish Events — Website
 
-Mobile-first website for **Lavish Events**, a natural/herbal beauty brand.
-Primary conversion: browse → cart → **order on WhatsApp** (no payment gateway, by design — see PRD).
+Mobile-first website for **Lavish Events**, a curated shopping exhibition company by Irfaana,
+Zainab & Shazia.
+Primary conversion: browse exhibitions → **enquire on WhatsApp / join the list** (no payment
+gateway, by design).
 
-> **Real data policy:** no products, prices, ingredients, benefits, reviews or business claims are
-> invented in this codebase. Anything pending client input appears as `[CLIENT DATA REQUIRED]`.
+> **Content:** the public site ships with a curated exhibition showcase (`client/src/lib/demoData.ts`)
+> so the GitHub Pages preview is fully populated. Once the API is connected, the admin panel is the
+> source of truth and real data overrides the showcase automatically.
 
 ---
 

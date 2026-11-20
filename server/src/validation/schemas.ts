@@ -100,7 +100,10 @@ export const changePasswordSchema = z.object({
 export const settingsInputSchema = z.object({
   businessName: trimmed.max(120).default('Lavish Events'),
   whatsappNumber: trimmed
-    .regex(/^\+?[0-9]{7,15}$/, 'WhatsApp number must be digits, optionally starting with +')
+    .regex(
+      /^(?:\+?[0-9]{7,15}|https?:\/\/.+)$/,
+      'Enter a WhatsApp number (digits, optionally starting with +) or an invite link'
+    )
     .or(z.literal(''))
     .default(''),
   instagramUrl: z.union([z.literal(''), z.string().trim().url()]).default(''),

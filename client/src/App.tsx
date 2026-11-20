@@ -5,7 +5,6 @@ import { CartProvider } from '@/context/CartContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { MiniCart } from '@/components/MiniCart';
 import { WhatsAppFloat } from '@/components/layout/WhatsAppFloat';
 import { HomePage } from '@/pages/HomePage';
 import { ShopPage } from '@/pages/ShopPage';
@@ -38,7 +37,6 @@ function SiteChrome({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
-      <MiniCart />
       <WhatsAppFloat />
     </>
   );

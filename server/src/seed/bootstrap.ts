@@ -11,7 +11,7 @@ import bcrypt from 'bcryptjs';
 import { AdminUser, SiteSettings } from '../models/index.js';
 import { config } from '../config/env.js';
 
-const CLIENT_DATA_REQUIRED = '[CLIENT DATA REQUIRED]';
+
 
 export async function bootstrapAdmin(): Promise<void> {
   const existing = await AdminUser.findOne({ email: config.adminEmail });
@@ -56,14 +56,27 @@ export async function bootstrapSettings(): Promise<void> {
 
   await SiteSettings.create({
     businessName: 'Lavish Events',
-    // Business contact details and brand copy are supplied by the client.
-    whatsappNumber: '',
-    instagramUrl: '',
+    whatsappNumber: 'https://chat.whatsapp.com/LRdRp3OW7J2B7XOd6pCa3m',
+    instagramUrl: 'https://www.instagram.com/lavish__event_/',
     email: '',
     mapsUrl: '',
-    hero: { headline: '', subheadline: '', imageUrl: '' },
-    about: { intro: '', story: CLIENT_DATA_REQUIRED, founderImageUrl: '' },
-    announcements: { enabled: false, text: '' },
+    hero: {
+      headline: 'Where style meets celebration.',
+      subheadline:
+        'Curated shopping exhibitions, festive edits and pop-ups by Irfaana, Zainab & Shazia — bringing the best home-grown labels to your city.',
+      imageUrl: '/images/event-1.jpg',
+    },
+    about: {
+      intro:
+        'Lavish Events is a curated exhibition company built by three friends with one shared obsession: discovering labels worth talking about.',
+      story:
+        'Irfaana, Zainab and Shazia — the trend makers behind Lavish Events — have spent years connecting shoppers with designers, boutiques and beauty brands they genuinely love. Every Lavish exhibition is hand-curated: a considered mix of fashion, festive wear, jewellery, beauty and lifestyle, with a warm, unhurried atmosphere that keeps people coming back.\n\nFrom Mumbai to Bhavnagar, our goal is simple: make great shopping feel like a celebration.',
+      founderImageUrl: '/images/event-2.jpg',
+    },
+    announcements: {
+      enabled: true,
+      text: 'Next up: Qubool Hai Exhibition · 24 Nov · Hotel Clifton, Jogeshwari West · Free entry',
+    },
   });
-  console.log('✓ Site settings created (contact details pending client data)');
+  console.log('✓ Site settings created with Lavish Events defaults');
 }

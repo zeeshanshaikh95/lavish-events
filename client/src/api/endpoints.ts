@@ -1,4 +1,14 @@
 import { api, resolveAssetUrl } from './client';
+import {
+  demoCategories,
+  demoGallery,
+  demoGetCategory,
+  demoGetProduct,
+  demoListProducts,
+  demoProducts,
+  demoReviews,
+  demoSettings,
+} from '@/lib/demoData';
 import type {
   AdminSettings,
   AnalyticsSummary,
@@ -51,9 +61,12 @@ function normSettings(s: PublicSettings): PublicSettings {
 
 export const publicApi = {
   getSettings: () =>
-    api.get<{ settings: PublicSettings }>('/settings').then((r) => ({
-      settings: normSettings(r.settings),
-    })),
+    api
+      .get<{ settings: PublicSettings }>('/settings')
+      .then((r) => ({
+        settings: normSettings(r.settings),
+      }))
+      .catch(() => ({ settings: demoSettings })),
   listProducts: (params: ProductQueryParams = {}) => {
     const qs = new URLSearchParams();
     if (params.search) qs.set('search', params.search);
@@ -62,34 +75,54 @@ export const publicApi = {
     const s = qs.toString();
     return api
       .get<{ products: Product[] }>(`/products${s ? `?${s}` : ''}`)
-      .then((r) => ({ products: r.products.map(normProduct) }));
+      .then((r) => ({ products: r.products.map(normProduct) }))
+      .catch(() => ({
+        products: demoListProducts({
+          search: params.search,
+          category: params.category,
+          sort: params.sort,
+        }),
+      }));
   },
   getProduct: (slug: string) =>
     api
       .get<{ product: Product }>(`/products/${encodeURIComponent(slug)}`)
-      .then((r) => ({ product: normProduct(r.product) })),
+      .then((r) => ({ product: normProduct(r.product) }))
+      .catch(() => ({ product: demoGetProduct(slug) })),
   getRelated: (slug: string) =>
     api
       .get<{ products: Product[] }>(`/products/${encodeURIComponent(slug)}/related`)
-      .then((r) => ({ products: r.products.map(normProduct) })),
+      .then((r) => ({ products: r.products.map(normProduct) }))
+      .catch(() => {
+        const current = demoProducts.find((p) => p.slug === slug);
+        return {
+          products: demoProducts.filter((p) => p.slug !== slug && p.category?.slug === current?.category?.slug).slice(0, 4),
+        };
+      }),
   listCategories: () =>
     api
       .get<{ categories: Category[] }>('/categories')
-      .then((r) => ({ categories: r.categories.map(normCategory) })),
+      .then((r) => ({ categories: r.categories.map(normCategory) }))
+      .catch(() => ({ categories: demoCategories })),
   getCategory: (slug: string) =>
     api
       .get<{ category: Category; products: Product[] }>(`/categories/${encodeURIComponent(slug)}`)
       .then((r) => ({
         category: normCategory(r.category),
         products: r.products.map(normProduct),
-      })),
+      }))
+      .catch(() => demoGetCategory(slug)),
   listReviews: () =>
-    api.get<{ reviews: Review[] }>('/reviews').then((r) => ({ reviews: r.reviews.map(normReview) })),
+    api
+      .get<{ reviews: Review[] }>('/reviews')
+      .then((r) => ({ reviews: r.reviews.map(normReview) }))
+      .catch(() => ({ reviews: demoReviews })),
   listGallery: () =>
     api
       .get<{ items: GalleryItem[] }>('/gallery')
-      .then((r) => ({ items: r.items.map(normGallery) })),
-  track: (event: TrackPayload) => api.post('/analytics/events', event),
+      .then((r) => ({ items: r.items.map(normGallery) }))
+      .catch(() => ({ items: demoGallery })),
+  track: (event: TrackPayload) => api.post('/analytics/events', event).catch(() => undefined),
 };
 
 export interface ProductQueryParams {

@@ -3,6 +3,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        noir: '#0E0D0B',
         brand: {
           50: '#FBF7EE',
           100: '#F5EDD8',
@@ -29,8 +30,8 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Playfair Display"', 'Georgia', 'serif'],
-        body: ['"Inter"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        body: ['"Jost"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
         soft: '0 6px 24px -8px rgba(138, 106, 42, 0.18)',

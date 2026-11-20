@@ -4,7 +4,6 @@ import { useApi } from '@/hooks/useApi';
 import { ProductCard } from '@/components/ProductCard';
 import { EmptyState } from '@/components/EmptyState';
 import { Seo } from '@/components/seo/Seo';
-import { FloralDivider } from '@/components/FloralDivider';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 export function CategoryPage() {
@@ -19,19 +18,19 @@ export function CategoryPage() {
       {data ? (
         <Seo
           title={data.category.name}
-          description={data.category.description || `Browse ${data.category.name} from Lavish Events.`}
+          description={data.category.description || `Browse ${data.category.name} exhibitions from Lavish Events.`}
           canonicalPath={`/category/${data.category.slug}`}
         />
       ) : (
         <Seo title="Category" canonicalPath={`/category/${slug}`} />
       )}
 
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-10">
         {loading ? (
           <>
-            <div className="skeleton mx-auto h-8 w-64" />
-            <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-72" />)}
+            <div className="skeleton h-10 w-72" />
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(3)].map((_, i) => <div key={i} className="skeleton aspect-[4/5]" />)}
             </div>
           </>
         ) : error || !data ? (
@@ -40,24 +39,25 @@ export function CategoryPage() {
               icon="error"
               title="Category not found"
               description={error ?? 'It may have been removed or renamed.'}
-              action={<Link to="/shop" className="btn-primary">Browse All Products</Link>}
+              action={<Link to="/shop" className="btn-primary">Browse All Exhibitions</Link>}
             />
           </div>
         ) : (
           <>
-            <header className="text-center">
+            <header className="border-b border-brand-200 pb-10">
               <p className="eyebrow">Category</p>
-              <h1 className="section-title mt-2">{data.category.name}</h1>
+              <h1 className="mt-3 font-display text-5xl font-medium leading-none sm:text-6xl">
+                {data.category.name}
+              </h1>
               {data.category.description ? (
-                <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">
+                <p className="mt-5 max-w-2xl text-sm font-light leading-relaxed text-ink-soft">
                   {data.category.description}
                 </p>
               ) : null}
-              <FloralDivider className="mt-4" />
             </header>
 
             {data.category.image ? (
-              <div className="mx-auto mt-6 aspect-[21/9] max-w-4xl overflow-hidden rounded-blob bg-brand-50">
+              <div className="mt-8 aspect-[21/9] overflow-hidden bg-brand-50">
                 <img src={data.category.image} alt={data.category.name} className="h-full w-full object-cover" />
               </div>
             ) : null}
@@ -65,24 +65,24 @@ export function CategoryPage() {
             {data.products.length === 0 ? (
               <div className="mt-10">
                 <EmptyState
-                  title="No products in this category yet"
-                  description="Products will appear here once they're added. In the meantime, message us and we'll help you directly."
+                  title="No exhibitions in this category right now"
+                  description="New dates are added regularly. Join the WhatsApp list and we'll announce them first."
                   action={
                     <div className="flex flex-wrap justify-center gap-3">
-                      <Link to="/shop" className="btn-outline">Browse All Products</Link>
-                      <WhatsAppButton message="Hi Lavish Events! 🌸 I'd like to know what's available." label="Ask on WhatsApp" />
+                      <Link to="/shop" className="btn-outline">Browse All</Link>
+                      <WhatsAppButton message="Hi Lavish Events! Please tell me about upcoming exhibitions." label="Join the list" />
                     </div>
                   }
                 />
               </div>
             ) : (
-              <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {data.products.map((p) => <ProductCard key={p._id} product={p} />)}
               </div>
             )}
 
             <div className="mt-12 text-center">
-              <Link to="/shop" className="btn-outline">← Browse all products</Link>
+              <Link to="/shop" className="btn-outline">← All exhibitions</Link>
             </div>
           </>
         )}

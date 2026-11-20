@@ -7,7 +7,6 @@
     scroll-behavior: smooth;
   }
 
-  /* PRD §15: respect reduced-motion preferences */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -25,27 +24,33 @@
     @apply bg-cream text-ink font-body antialiased;
   }
 
-  /* Visible, brand-consistent focus states (PRD §15 accessibility) */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+  }
+
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-600 ring-offset-2 ring-offset-white;
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-cream;
   }
 
   ::selection {
-    @apply bg-brand-200 text-brand-900;
+    @apply bg-brand-200 text-brand-950;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-none px-7 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-primary {
-    @apply btn bg-brand-600 text-white shadow-soft hover:bg-brand-700 active:scale-[0.98];
+    @apply btn bg-ink text-cream hover:bg-brand-600 hover:text-ink active:scale-[0.99];
   }
 
   .btn-outline {
-    @apply btn border-2 border-brand-600 text-brand-700 hover:bg-brand-50 active:scale-[0.98];
+    @apply btn border border-ink/30 text-ink hover:border-brand-600 hover:bg-brand-50 active:scale-[0.99];
   }
 
   .btn-ghost {
@@ -53,41 +58,39 @@
   }
 
   .btn-whatsapp {
-    @apply btn bg-[#1FA855] text-white shadow-soft hover:bg-[#178A45] active:scale-[0.98];
+    @apply btn bg-[#128C4A] text-white hover:bg-[#0E7040] active:scale-[0.99];
   }
 
   .input {
-    @apply w-full rounded-xl border border-brand-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200;
+    @apply w-full rounded-none border border-brand-200 bg-white px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-400;
   }
 
   .label {
-    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-soft;
+    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-soft;
   }
 
   .card {
-    @apply rounded-blob bg-white shadow-card;
+    @apply rounded-none border border-brand-100 bg-white shadow-card;
   }
 
   .section-title {
-    @apply font-display text-3xl font-semibold text-ink sm:text-4xl;
+    @apply font-display text-4xl font-medium leading-[1.05] text-ink sm:text-5xl;
   }
 
   .eyebrow {
-    @apply text-xs font-bold uppercase tracking-[0.2em] text-brand-600;
+    @apply text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-600;
   }
 
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide;
+    @apply inline-flex items-center gap-1 rounded-none px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em];
   }
 
   .badge-pink {
     @apply badge bg-brand-100 text-brand-800;
   }
 
-  /* "Featured" reads as a premium neutral label — the logo palette is
-     pink/black/white, so a second accent colour is kept out of the UI. */
   .badge-leaf {
-    @apply badge bg-ink text-white;
+    @apply badge bg-ink text-cream;
   }
 
   .badge-stone {
@@ -95,7 +98,7 @@
   }
 
   .skeleton {
-    @apply animate-pulse rounded-xl bg-brand-100/70;
+    @apply animate-pulse rounded-none bg-brand-100/70;
   }
 }
 
@@ -103,5 +106,22 @@
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: theme('colors.brand.200') transparent;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .marquee-track {
+    animation: marquee 28s linear infinite;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }

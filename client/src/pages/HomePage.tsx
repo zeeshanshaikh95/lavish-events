@@ -4,57 +4,60 @@ import { publicApi } from '@/api/endpoints';
 import { useApi } from '@/hooks/useApi';
 import { useSettings } from '@/context/SettingsContext';
 import { ProductCard } from '@/components/ProductCard';
-import { PlaceholderImage } from '@/components/PlaceholderImage';
-import { FloralDivider } from '@/components/FloralDivider';
-import { Stars } from '@/components/Stars';
 import { Seo } from '@/components/seo/Seo';
-import { EmptyState } from '@/components/EmptyState';
+import { Stars } from '@/components/Stars';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { trackEvent } from '@/lib/analytics';
-import { truncate } from '@/lib/format';
-import { HERO_IMAGE } from '@/lib/brand';
+
+const SERVICES = [
+  {
+    title: 'Curated Exhibitions',
+    text: 'Carefully edited floors of fashion, festive wear, jewellery, beauty and lifestyle — never a random mix of stalls.',
+  },
+  {
+    title: 'Vendor Curation',
+    text: 'We scout and shortlist every label so shoppers discover something new and exhibitors meet the right audience.',
+  },
+  {
+    title: 'Pop-Ups & Launches',
+    text: 'Focused, intimate events for brands that want a beautiful space and a ready-made community around them.',
+  },
+  {
+    title: 'Festive Edits',
+    text: 'Season-led exhibitions timed around weddings, Eid, Diwali and the moments people actually shop for.',
+  },
+];
+
+const STATS = [
+  { value: '120+', label: 'Exhibitions hosted' },
+  { value: '39.7K', label: 'Community' },
+  { value: '2', label: 'Cities & growing' },
+  { value: '100%', label: 'Curated stalls' },
+];
 
 export function HomePage() {
   const { settings } = useSettings();
-  const categories = useApi(() => publicApi.listCategories().then((r) => r.categories), []);
-  const bestsellers = useApi(
-    () => publicApi.listProducts({ sort: 'bestseller' }).then((r) => r.products.filter((p) => p.bestseller)),
-    []
-  );
-  const featured = useApi(
-    () => publicApi.listProducts({ sort: 'featured' }).then((r) => r.products.filter((p) => p.featured)),
-    []
-  );
-  const reviews = useApi(() => publicApi.listReviews().then((r) => r.reviews), []);
+  const featured = useApi(() => publicApi.listProducts({ sort: 'featured' }).then((r) => r.products), []);
   const gallery = useApi(() => publicApi.listGallery().then((r) => r.items), []);
+  const reviews = useApi(() => publicApi.listReviews().then((r) => r.reviews), []);
+  const categories = useApi(() => publicApi.listCategories().then((r) => r.categories), []);
+
+  const [slideIndex, setSlideIndex] = useState(0);
 
   useEffect(() => {
     trackEvent({ type: 'page_view', path: '/' });
   }, []);
 
-  const heroImage = settings.hero.imageUrl || HERO_IMAGE;
   const slides =
     gallery.data && gallery.data.length
-      ? gallery.data.slice(0, 5).map((g) => ({
-          image: g.image || heroImage,
-          headline: g.caption || settings.hero.headline || 'Lavish moments, crafted with care',
-          sub: settings.hero.subheadline || 'Discover our events and creations. Browse and enquire on WhatsApp.',
-        }))
-      : [
-          {
-            image: heroImage,
-            headline: settings.hero.headline || 'Natural herbal beauty, handcrafted with care',
-            sub:
-              settings.hero.subheadline ||
-              'Discover handcrafted, natural skincare made in small batches. Explore our products and order directly on WhatsApp.',
-          },
-        ];
-  const [slideIndex, setSlideIndex] = useState(0);
-  const currentSlide = slides[slideIndex % slides.length] || slides[0];
+      ? gallery.data.slice(0, 5)
+      : [{ _id: 'hero', image: settings.hero.imageUrl, caption: '', externalUrl: '' }];
+
+  const current = slides[slideIndex % slides.length];
 
   useEffect(() => {
     if (slides.length <= 1) return;
-    const t = setInterval(() => setSlideIndex((i) => (i + 1) % slides.length), 4500);
+    const t = setInterval(() => setSlideIndex((i) => (i + 1) % slides.length), 5200);
     return () => clearInterval(t);
   }, [slides.length]);
 
@@ -62,330 +65,347 @@ export function HomePage() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: settings.businessName,
+    description: settings.about.intro,
     ...(settings.instagramUrl ? { sameAs: [settings.instagramUrl] } : {}),
   };
 
   return (
     <>
       <Seo
-        title="Lavish Events — Natural & Herbal Beauty"
-        description="Handcrafted natural and herbal beauty products. Browse the catalogue and order easily on WhatsApp."
+        title="Lavish Events — Curated Exhibitions & Pop-Ups"
+        description="Curated shopping exhibitions, festive edits and pop-ups by Irfaana, Zainab & Shazia. Fashion, beauty, jewellery and lifestyle under one roof. Free entry."
         canonicalPath="/"
         jsonLd={jsonLd}
       />
 
-      {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blush to-cream">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-100/70 blur-2xl" />
-        <div className="pointer-events-none absolute -left-20 bottom-0 h-56 w-56 rounded-full bg-leaf-50 blur-2xl" />
-
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
-          <div className="grid items-center gap-10 md:grid-cols-2">
-            <div className="animate-fade-up">
-              <p className="eyebrow">Lavish · Events · Moments</p>
-              <h1 className="mt-3 font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
-                {currentSlide.headline}
-              </h1>
-              <p className="mt-4 max-w-lg text-base leading-relaxed text-ink-soft sm:text-lg">
-                {currentSlide.sub}
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link to="/shop" className="btn-primary">
-                  Explore
-                </Link>
-                <WhatsAppButton
-                  message="Hi Lavish Events! 🌸 I would like to enquire about your events."
-                  label="Order / Enquire on WhatsApp"
-                />
-              </div>
-              <p className="mt-4 text-xs text-ink-soft/80">
-                Personalised service on WhatsApp — we reply with availability & details.
-              </p>
-            </div>
-
-            <div className="relative aspect-[4/5] overflow-hidden rounded-blob bg-blush shadow-soft">
+      {/* ── Hero slider ───────────────────────────────────────── */}
+      <section className="relative isolate min-h-[78vh] overflow-hidden bg-ink" aria-label="Featured exhibitions">
+        {slides.map((s, i) => (
+          <div
+            key={s._id}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              i === slideIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+            aria-hidden={i !== slideIndex}
+          >
+            {s.image ? (
               <img
-                src={currentSlide.image}
-                alt="Lavish Events hero"
-                width={1122}
-                height={1402}
-                loading="eager"
-                className="h-full w-full object-cover object-center transition-opacity duration-500"
+                src={s.image}
+                alt={s.caption || 'Lavish Events exhibition'}
+                className="h-full w-full object-cover"
+                loading={i === 0 ? 'eager' : 'lazy'}
               />
-              {slides.length > 1 ? (
-                <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-                  {slides.map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      aria-label={`Go to slide ${i + 1}`}
-                      onClick={() => setSlideIndex(i)}
-                      className={`h-2.5 w-2.5 rounded-full transition ${i === slideIndex ? 'bg-white' : 'bg-white/50'}`}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/65 to-ink/20" />
           </div>
-        </div>
-      </section>
+        ))}
 
-      {/* ── Shop by Category ──────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6" aria-labelledby="categories-heading">
-        <div className="text-center">
-          <p className="eyebrow">Browse</p>
-          <h2 id="categories-heading" className="section-title mt-2">Shop by Category</h2>
-          <FloralDivider className="mt-4" />
-        </div>
-
-        {categories.loading ? (
-          <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-            {[...Array(3)].map((_, i) => <div key={i} className="skeleton h-44" />)}
-          </div>
-        ) : categories.error ? (
-          <div className="mt-8"><EmptyState icon="error" title="Couldn't load categories" description={categories.error} action={<button className="btn-outline" onClick={() => categories.refetch()}>Try again</button>} /></div>
-        ) : !categories.data?.length ? (
-          <div className="mt-8">
-            <EmptyState
-              title="Our categories are on the way"
-              description="We're preparing the collection. Follow us on Instagram or message us on WhatsApp to hear when it launches."
-            />
-          </div>
-        ) : (
-          <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-            {categories.data.map((cat) => (
-              <Link
-                key={cat._id}
-                to={`/category/${cat.slug}`}
-                className="card group relative overflow-hidden"
-              >
-                <div className="aspect-[4/3] overflow-hidden bg-brand-50">
-                  {cat.image ? (
-                    <img
-                      src={cat.image}
-                      alt={cat.name}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <PlaceholderImage seed={cat.slug} />
-                  )}
-                </div>
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent p-4 pt-10">
-                  <h3 className="font-display text-lg font-semibold text-white">{truncate(cat.name, 40)}</h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ── Bestsellers ───────────────────────────────────────── */}
-      <section className="bg-blush/50 py-14" aria-labelledby="bestsellers-heading">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <p className="eyebrow">Loved by our customers</p>
-            <h2 id="bestsellers-heading" className="section-title mt-2">Bestsellers</h2>
-            <FloralDivider className="mt-4" />
-          </div>
-
-          {bestsellers.loading ? (
-            <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-72" />)}
-            </div>
-          ) : bestsellers.error ? (
-            <div className="mt-8"><EmptyState icon="error" title="Couldn't load products" description={bestsellers.error} /></div>
-          ) : !bestsellers.data?.length ? (
-            <div className="mt-8">
-              <EmptyState
-                title="No products available yet"
-                description="Our products will appear here as soon as the catalogue is ready."
-              />
-            </div>
-          ) : (
-            <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {bestsellers.data.slice(0, 8).map((p) => <ProductCard key={p._id} product={p} />)}
-            </div>
-          )}
-
-          <div className="mt-8 text-center">
-            <Link to="/shop" className="btn-outline">View All Products</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Featured Products ─────────────────────────────────── */}
-      {featured.data?.length ? (
-        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6" aria-labelledby="featured-heading">
-          <div className="text-center">
-            <p className="eyebrow">Special picks</p>
-            <h2 id="featured-heading" className="section-title mt-2">Featured Products</h2>
-            <FloralDivider className="mt-4" />
-          </div>
-          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {featured.data.slice(0, 4).map((p) => <ProductCard key={p._id} product={p} />)}
-          </div>
-        </section>
-      ) : null}
-
-      {/* ── Why Lavish Events ────────────────────────────────── */}
-      <section className="bg-white py-14" aria-labelledby="why-heading">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <p className="eyebrow">Our promise</p>
-            <h2 id="why-heading" className="section-title mt-2">Why Lavish Events</h2>
-            <FloralDivider className="mt-4" />
-          </div>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { title: 'Natural & Herbal', text: 'Formulated with natural and herbal ingredients, prepared with care.' },
-              { title: 'Handcrafted in Small Batches', text: 'Each batch is made by hand in limited quantities for freshness.' },
-              { title: 'Personal WhatsApp Service', text: 'Direct, personal guidance before you order — straight from the maker.' },
-            ].map((item) => (
-              <div key={item.title} className="card p-6 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-600">
-                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <path d="M12 21c-5-3-8-6.5-8-10a5 5 0 018-4 5 5 0 018 4c0 3.5-3 7-8 10z" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <h3 className="mt-4 font-display text-lg font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.text}</p>
-              </div>
-            ))}
-          </div>
-          {/* NOTE: only neutral, non-medical wording is used above. Replace with the
-              client's approved benefit copy once supplied (PRD §7.6). */}
-        </div>
-      </section>
-
-      {/* ── About teaser ──────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6" aria-labelledby="about-heading">
-        <div className="grid items-center gap-10 md:grid-cols-2">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-blob bg-brand-50 shadow-card md:aspect-[4/3]">
-            {settings.about.founderImageUrl ? (
-              <img src={settings.about.founderImageUrl} alt="Founder of Lavish Events" className="h-full w-full object-cover" loading="lazy" />
-            ) : (
-              <PlaceholderImage seed="founder" />
-            )}
-          </div>
-          <div>
-            <p className="eyebrow">Our story</p>
-            <h2 id="about-heading" className="section-title mt-2">About Lavish Events</h2>
-            <p className="mt-4 leading-relaxed text-ink-soft">
-              {settings.about.intro ||
-                'Lavish Events is a natural/herbal beauty brand offering handcrafted, small-batch personal care products.'}
+        <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-10">
+          <div className="max-w-3xl">
+            <p className="text-[11px] font-medium uppercase tracking-[0.42em] text-brand-300">
+              Irfaana · Zainab · Shazia
             </p>
-            <div className="mt-6">
-              <Link to="/about" className="btn-outline">Read Our Story</Link>
+            <h1 className="mt-5 font-display text-5xl font-medium leading-[0.95] text-cream sm:text-7xl lg:text-[6rem]">
+              {settings.hero.headline || 'Where style meets celebration.'}
+            </h1>
+            <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-cream/75 sm:text-lg">
+              {settings.hero.subheadline}
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-4">
+              <Link to="/shop" className="btn-primary !bg-cream !text-ink hover:!bg-brand-200">
+                Explore Exhibitions
+              </Link>
+              <WhatsAppButton
+                message="Hi Lavish Events! I would like to know about your upcoming exhibitions."
+                label="Join the WhatsApp list"
+                className="!bg-transparent !border !border-cream/40 hover:!bg-cream/10"
+              />
             </div>
+          </div>
+
+          {/* Slider controls */}
+          <div className="mt-14 flex items-end justify-between gap-6">
+            <div className="flex items-center gap-3">
+              {slides.length > 1
+                ? slides.map((s, i) => (
+                    <button
+                      key={s._id}
+                      type="button"
+                      onClick={() => setSlideIndex(i)}
+                      aria-label={`Go to slide ${i + 1}`}
+                      className={`h-px transition-all ${
+                        i === slideIndex ? 'w-12 bg-brand-300' : 'w-5 bg-cream/30 hover:bg-cream/60'
+                      }`}
+                    />
+                  ))
+                : null}
+            </div>
+            <p className="hidden text-[10px] uppercase tracking-[0.24em] text-cream/50 sm:block">
+              {current?.caption || 'Curated by Lavish Events'}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── Reviews ───────────────────────────────────────────── */}
-      <section className="bg-blush/50 py-14" aria-labelledby="reviews-heading">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center">
-            <p className="eyebrow">Customer love</p>
-            <h2 id="reviews-heading" className="section-title mt-2">Reviews & Results</h2>
-            <FloralDivider className="mt-4" />
-          </div>
-
-          {reviews.loading ? (
-            <div className="mt-8 grid gap-4 md:grid-cols-3">{[...Array(3)].map((_, i) => <div key={i} className="skeleton h-40" />)}</div>
-          ) : !reviews.data?.length ? (
-            <div className="mt-8">
-              <EmptyState
-                title="No reviews yet"
-                description="Customer reviews will be shared here as soon as they're approved."
-              />
+      {/* ── Marquee ───────────────────────────────────────────── */}
+      <div className="overflow-hidden border-y border-brand-200 bg-brand-50 py-3.5">
+        <div className="marquee-track flex w-max items-center gap-10 whitespace-nowrap">
+          {[0, 1].map((n) => (
+            <div key={n} className="flex items-center gap-10">
+              {['Fashion', 'Beauty', 'Jewellery', 'Festive', 'Lifestyle', 'Home', 'Accessories'].map(
+                (word) => (
+                  <span key={word} className="flex items-center gap-10">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand-800">
+                      {word}
+                    </span>
+                    <span className="text-brand-400">✦</span>
+                  </span>
+                )
+              )}
             </div>
-          ) : (
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {reviews.data.slice(0, 6).map((r) => (
-                <figure key={r._id} className="card flex flex-col p-6">
-                  <Stars rating={r.rating} />
-                  <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft">
-                    “{r.text}”
-                  </blockquote>
-                  <figcaption className="mt-4 text-sm font-semibold text-ink">— {r.customerName}</figcaption>
-                </figure>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Upcoming exhibitions ──────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10" aria-labelledby="upcoming-heading">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="eyebrow">On the calendar</p>
+            <h2 id="upcoming-heading" className="section-title mt-3">
+              Upcoming exhibitions
+            </h2>
+          </div>
+          <Link to="/shop" className="btn-outline self-start sm:self-auto">
+            View all
+          </Link>
+        </div>
+
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {featured.loading
+            ? [...Array(3)].map((_, i) => <div key={i} className="skeleton aspect-[4/5]" />)
+            : featured.data?.slice(0, 3).map((p) => <ProductCard key={p._id} product={p} />)}
+        </div>
+      </section>
+
+      {/* ── Experience ────────────────────────────────────────── */}
+      <section className="bg-ink py-20 text-cream" aria-labelledby="experience-heading">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+          <div className="grid gap-12 lg:grid-cols-12">
+            <div className="lg:col-span-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-300">
+                The Lavish experience
+              </p>
+              <h2 id="experience-heading" className="mt-4 font-display text-4xl font-medium leading-tight sm:text-5xl">
+                More than a market. A room full of good taste.
+              </h2>
+              <p className="mt-6 max-w-md text-sm font-light leading-relaxed text-cream/65">
+                We bring together labels we genuinely love, in spaces designed to slow you down.
+                Come for the shopping, stay for the conversations, the styling and the little
+                discoveries you will not find anywhere else.
+              </p>
+              <div className="mt-8">
+                <Link to="/about" className="btn-primary !bg-cream !text-ink hover:!bg-brand-200">
+                  Our story
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-px bg-cream/15 sm:grid-cols-2 lg:col-span-7">
+              {SERVICES.map((item, i) => (
+                <div key={item.title} className="bg-ink p-7">
+                  <span className="font-display text-3xl text-brand-300/70">0{i + 1}</span>
+                  <h3 className="mt-4 font-display text-2xl font-medium">{item.title}</h3>
+                  <p className="mt-2 text-sm font-light leading-relaxed text-cream/60">{item.text}</p>
+                </div>
               ))}
             </div>
-          )}
-          <div className="mt-8 text-center">
-            <Link to="/reviews" className="btn-outline">See All Reviews</Link>
+          </div>
+
+          <div className="mt-16 grid grid-cols-2 gap-8 border-t border-cream/15 pt-10 sm:grid-cols-4">
+            {STATS.map((s) => (
+              <div key={s.label}>
+                <p className="font-display text-4xl font-medium text-brand-300 sm:text-5xl">{s.value}</p>
+                <p className="mt-2 text-[10px] uppercase tracking-[0.22em] text-cream/50">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Instagram gallery ─────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6" aria-labelledby="gallery-heading">
-        <div className="text-center">
-          <p className="eyebrow">On Instagram</p>
-          <h2 id="gallery-heading" className="section-title mt-2">@lavish__event_</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-ink-soft">
-            A hand-picked selection from our Instagram — follow us for new products and behind the scenes.
-          </p>
+      {/* ── About split ───────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10" aria-labelledby="about-heading">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="relative">
+            <div className="aspect-[4/5] overflow-hidden bg-brand-50">
+              <img
+                src={settings.about.founderImageUrl || slides[0]?.image}
+                alt="Lavish Events exhibition"
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="absolute -bottom-6 -right-2 hidden max-w-[220px] border border-brand-300 bg-cream p-5 sm:block">
+              <p className="font-display text-xl leading-snug text-ink">
+                “The trend makers.”
+              </p>
+              <p className="mt-2 text-[10px] uppercase tracking-[0.2em] text-brand-700">
+                Irfaana · Zainab · Shazia
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <p className="eyebrow">Our story</p>
+            <h2 id="about-heading" className="section-title mt-3">
+              Three friends. One shared eye for what is next.
+            </h2>
+            <p className="mt-6 text-sm font-light leading-relaxed text-ink-soft">
+              {settings.about.intro}
+            </p>
+            <p className="mt-4 whitespace-pre-line text-sm font-light leading-relaxed text-ink-soft">
+              {settings.about.story}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/about" className="btn-primary">
+                Read more
+              </Link>
+              <Link to="/gallery" className="btn-outline">
+                See the gallery
+              </Link>
+            </div>
+          </div>
         </div>
+      </section>
 
-        {gallery.data?.length ? (
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {gallery.data.slice(0, 6).map((g) => {
-              const inner = (
-                <>
-                  {g.image ? (
-                    <img src={g.image} alt={g.caption || 'Instagram post'} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                  ) : (
-                    <PlaceholderImage seed={`ig-${g._id}`} />
-                  )}
-                </>
-              );
-              return g.externalUrl ? (
-                <a key={g._id} href={g.externalUrl} target="_blank" rel="noopener noreferrer" className="group relative aspect-square overflow-hidden rounded-2xl bg-brand-50">
-                  {inner}
-                </a>
-              ) : (
-                <div key={g._id} className="group relative aspect-square overflow-hidden rounded-2xl bg-brand-50">
-                  {inner}
-                </div>
-              );
-            })}
+      {/* ── Categories ────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-10" aria-labelledby="categories-heading">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="eyebrow">Shop the edit</p>
+            <h2 id="categories-heading" className="section-title mt-3">
+              Find your kind of beautiful
+            </h2>
           </div>
-        ) : (
-          <div className="mt-8">
-            <EmptyState
-              title="Instagram gallery coming soon"
-              description="We're curating our favourite posts — follow along on Instagram in the meantime."
-            />
-          </div>
-        )}
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+          {categories.data?.map((cat) => (
+            <Link key={cat._id} to={`/category/${cat.slug}`} className="group relative aspect-[4/3] overflow-hidden bg-brand-50">
+              {cat.image ? (
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/10 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-5">
+                <h3 className="font-display text-2xl font-medium text-cream">{cat.name}</h3>
+                <p className="mt-1 line-clamp-2 text-[11px] font-light text-cream/65">{cat.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-        {settings.instagramUrl ? (
-          <div className="mt-8 text-center">
-            <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="btn-outline">
+      {/* ── Gallery ───────────────────────────────────────────── */}
+      <section className="bg-brand-50/70 py-20" aria-labelledby="gallery-heading">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="eyebrow">From the floor</p>
+              <h2 id="gallery-heading" className="section-title mt-3">
+                @lavish__event_
+              </h2>
+            </div>
+            <a
+              href={settings.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline self-start sm:self-auto"
+            >
               Follow on Instagram
             </a>
           </div>
-        ) : null}
+
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {slides.slice(0, 5).map((g) => (
+              <a
+                key={g._id}
+                href={g.externalUrl || settings.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative aspect-square overflow-hidden bg-brand-100"
+              >
+                {g.image ? (
+                  <img
+                    src={g.image}
+                    alt={g.caption || 'Lavish Events exhibition'}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : null}
+                <div className="absolute inset-0 bg-ink/0 transition-colors group-hover:bg-ink/25" />
+              </a>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* ── Final WhatsApp CTA ────────────────────────────────── */}
-      <section className="bg-gradient-to-r from-brand-600 to-brand-500 py-16">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="font-display text-3xl font-bold text-white sm:text-4xl">
-            Ready to glow?
+      {/* ── Testimonials ──────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10" aria-labelledby="reviews-heading">
+        <div className="text-center">
+          <p className="eyebrow">Kind words</p>
+          <h2 id="reviews-heading" className="section-title mt-3">
+            Loved by shoppers &amp; exhibitors
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-brand-50">
-            Message us on WhatsApp for personalised recommendations, availability and delivery details.
+        </div>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {reviews.data?.slice(0, 4).map((r) => (
+            <figure key={r._id} className="border border-brand-200 bg-white p-6">
+              <Stars rating={r.rating} />
+              <blockquote className="mt-4 text-sm font-light leading-relaxed text-ink-soft">
+                “{r.text}”
+              </blockquote>
+              <figcaption className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700">
+                {r.customerName}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA ───────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-ink py-20 text-cream">
+        <img
+          src={slides[0]?.image}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-25"
+          loading="lazy"
+        />
+        <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-brand-300">
+            Save your spot
           </p>
-          <div className="mt-8">
+          <h2 className="mt-4 font-display text-4xl font-medium leading-tight sm:text-6xl">
+            Come for the labels. Stay for the energy.
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl text-sm font-light leading-relaxed text-cream/70">
+            Join our WhatsApp list for venue updates, new stall reveals and early access to every
+            Lavish exhibition.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <WhatsAppButton
-              message="Hi Lavish Events! 🌸 I would like to enquire about your products."
-              label="Chat on WhatsApp"
+              message="Hi Lavish Events! Please add me to your exhibition updates list."
+              label="Join the WhatsApp list"
               size="lg"
-              className="!bg-white !text-brand-700 hover:!bg-brand-50"
+              className="!bg-cream !text-ink hover:!bg-brand-200"
             />
+            <Link to="/contact" className="btn-outline !border-cream/40 !text-cream hover:!bg-cream/10">
+              Book a stall
+            </Link>
           </div>
         </div>
       </section>

@@ -1,18 +1,15 @@
 import mongoose, { Schema, model, type Model } from 'mongoose';
 
 export const WHATSAPP_TEMPLATE_DEFAULT =
-  'Hi Lavish Events! 🌸\n' +
-  'I would like to order the following:\n' +
-  '{{ITEMS}}\n' +
-  'Estimated total: {{TOTAL}}\n\n' +
-  'Please share availability and delivery details.';
+  'Hi Lavish Events!\n' +
+  'I would like to enquire about:\n' +
+  '{{ITEMS}}\n\n' +
+  'Please share the date, venue and stall details.';
 
 export const WHATSAPP_TEMPLATE_SINGLE_DEFAULT =
-  'Hi Lavish Events! 🌸\n' +
-  'I would like to order:\n' +
-  '• {{PRODUCT}}\n' +
-  '{{VARIANT_LINE}}{{QTY_LINE}}Price: {{PRICE}}\n\n' +
-  'Please share availability and delivery details.';
+  'Hi Lavish Events!\n' +
+  'I would like to enquire about {{PRODUCT}}.\n\n' +
+  'Please share the date, venue and stall details.';
 
 export interface ISiteSettings {
   businessName: string;

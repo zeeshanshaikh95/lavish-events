@@ -3,7 +3,7 @@ import { useApi } from '@/hooks/useApi';
 import { Stars } from '@/components/Stars';
 import { EmptyState } from '@/components/EmptyState';
 import { Seo } from '@/components/seo/Seo';
-import { FloralDivider } from '@/components/FloralDivider';
+import { Link } from 'react-router-dom';
 
 export function ReviewsPage() {
   const { data, loading, error, refetch } = useApi(
@@ -14,21 +14,26 @@ export function ReviewsPage() {
   return (
     <>
       <Seo
-        title="Customer Reviews & Results"
-        description="Real feedback from Lavish Events customers on our natural and herbal products."
+        title="Kind Words"
+        description="What shoppers and exhibitors say about Lavish Events exhibitions."
         canonicalPath="/reviews"
       />
 
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <header className="text-center">
-          <p className="eyebrow">Customer Love</p>
-          <h1 className="section-title mt-2">Reviews & Results</h1>
-          <FloralDivider className="mt-4" />
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-10">
+        <header className="max-w-3xl">
+          <p className="eyebrow">Kind words</p>
+          <h1 className="mt-3 font-display text-5xl font-medium leading-none sm:text-6xl">
+            Good people, good taste.
+          </h1>
+          <p className="mt-5 text-sm font-light leading-relaxed text-ink-soft">
+            Notes from the shoppers, designers and brands who make every Lavish exhibition what it
+            is.
+          </p>
         </header>
 
         {loading ? (
           <div className="mt-10 grid gap-4 md:grid-cols-2">
-            {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-40" />)}
+            {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-48" />)}
           </div>
         ) : error ? (
           <div className="mt-10">
@@ -38,25 +43,29 @@ export function ReviewsPage() {
           <div className="mt-10">
             <EmptyState
               title="No reviews yet"
-              description="Customer reviews will be shared here as soon as they're approved."
+              description="Kind words will be shared here as soon as they're approved."
             />
           </div>
         ) : (
           <div className="mt-10 grid gap-4 md:grid-cols-2">
             {data.map((r) => (
-              <figure key={r._id} className="card flex gap-4 p-6">
-                {r.image ? (
-                  <img src={r.image} alt={`Photo from ${r.customerName}`} className="h-20 w-20 shrink-0 rounded-xl object-cover" loading="lazy" />
-                ) : null}
-                <div className="flex flex-col">
-                  <Stars rating={r.rating} />
-                  <blockquote className="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">“{r.text}”</blockquote>
-                  <figcaption className="mt-3 text-sm font-semibold text-ink">— {r.customerName}</figcaption>
-                </div>
+              <figure key={r._id} className="flex flex-col border border-brand-200 bg-white p-8">
+                <Stars rating={r.rating} />
+                <blockquote className="mt-4 flex-1 font-display text-2xl leading-snug text-ink">
+                  “{r.text}”
+                </blockquote>
+                <figcaption className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700">
+                  {r.customerName}
+                </figcaption>
               </figure>
             ))}
           </div>
         )}
+
+        <div className="mt-12 flex flex-wrap justify-center gap-3">
+          <Link to="/shop" className="btn-primary">Upcoming exhibitions</Link>
+          <Link to="/gallery" className="btn-outline">See the gallery</Link>
+        </div>
       </div>
     </>
   );

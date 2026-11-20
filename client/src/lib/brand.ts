@@ -21,14 +21,14 @@ export const LOGO_TRIMMED = `${BASE}brand/lavish-events-logo-trimmed.png`;
  * so it fills without cropping). Client-supplied, so it ships from
  * client/public rather than the uploads folder.
  */
-export const HERO_IMAGE = `${BASE}images/hero-skincare.png`;
+export const HERO_IMAGE = `${BASE}images/event-1.jpg`;
 
 /**
  * Founder portrait for the About page (1122×1402 — 4:5, matching the About
  * card so it fills without cropping the face). Client-supplied, so it ships
  * from client/public rather than the uploads folder.
  */
-export const FOUNDER_IMAGE = `${BASE}images/founder-parveen.png`;
+export const FOUNDER_IMAGE = `${BASE}images/event-2.jpg`;
 
 /** Social sharing image (1200×630). */
 export const OG_IMAGE = `${BASE}og-image.png`;

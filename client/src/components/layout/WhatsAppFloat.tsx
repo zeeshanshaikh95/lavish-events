@@ -16,7 +16,7 @@ export function WhatsAppFloat() {
 
   const link = buildWhatsAppLink(
     settings,
-    'Hi Lavish Events! 🌸 I have a question about your products.'
+    'Hi Lavish Events! I would like to know more about your upcoming exhibitions.'
   );
   if (!link) return null;
 

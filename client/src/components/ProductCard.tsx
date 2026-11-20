@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useCart } from '@/context/CartContext';
 import { useSettings } from '@/context/SettingsContext';
 import { buildSingleProductMessage, buildWhatsAppLink } from '@/lib/whatsapp';
 import { trackEvent } from '@/lib/analytics';
-import { formatPrice, truncate } from '@/lib/format';
+import { truncate } from '@/lib/format';
 import { PlaceholderImage } from './PlaceholderImage';
 import type { Product } from '@/types';
 
@@ -12,27 +11,25 @@ interface Props {
 }
 
 export function ProductCard({ product }: Props) {
-  const { addItem } = useCart();
   const { settings, whatsappConfigured } = useSettings();
-  const outOfStock = product.stockStatus === 'out_of_stock';
 
   const waLink = whatsappConfigured
     ? buildWhatsAppLink(
         settings,
         buildSingleProductMessage(settings, {
           productName: product.name,
-          variantName: product.variants[0]?.name ?? null,
+          variantName: null,
           quantity: 1,
-          price: product.price,
+          price: null,
         })
       )
     : null;
 
   return (
-    <article className="card group relative flex flex-col overflow-hidden transition-shadow hover:shadow-soft">
+    <article className="group relative flex flex-col border border-brand-200/70 bg-white transition-colors hover:border-brand-500">
       <Link
         to={`/product/${product.slug}`}
-        className="relative block aspect-square overflow-hidden bg-brand-50"
+        className="relative block aspect-[4/5] overflow-hidden bg-brand-50"
         aria-label={`View ${product.name}`}
       >
         {product.images[0] ? (
@@ -40,64 +37,52 @@ export function ProductCard({ product }: Props) {
             src={product.images[0]}
             alt={product.name}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
           />
         ) : (
           <PlaceholderImage seed={product.slug} />
         )}
-
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
-          {product.bestseller && <span className="badge-pink">Bestseller</span>}
-          {product.featured && <span className="badge-leaf">Featured</span>}
-          {outOfStock && <span className="badge-stone">Out of stock</span>}
+          {product.featured ? <span className="badge-leaf">Upcoming</span> : null}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-200">
+            Free Entry
+          </p>
+          <h3 className="mt-1 font-display text-2xl font-medium leading-tight text-cream">
+            {truncate(product.name, 48)}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-[11px] font-light leading-relaxed text-cream/75">
+            {product.size}
+          </p>
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <Link to={`/product/${product.slug}`} className="focus-visible:rounded">
-          <h3 className="font-display text-lg font-semibold leading-snug text-ink hover:text-brand-700">
-            {truncate(product.name, 64)}
-          </h3>
-        </Link>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <p className="line-clamp-2 text-xs font-light leading-relaxed text-ink-soft">
+          {product.description}
+        </p>
 
-        {product.size ? (
-          <p className="text-xs text-ink-soft">{product.size}</p>
-        ) : null}
-
-        <p className="text-base font-semibold text-brand-700">{formatPrice(product.price)}</p>
-
-        {/* Stacked on narrow phones: inside a 2-column card two side-by-side
-            buttons cannot fit "Add to Cart" below ~640px, and flex-shrinking
-            wrapped the label onto four lines. From sm up the row is unchanged. */}
-        <div className="mt-auto flex flex-col gap-2 pt-2 sm:flex-row">
-          <button
-            type="button"
-            disabled={outOfStock}
-            onClick={() => addItem(product)}
-            className="btn-outline w-full whitespace-nowrap !px-3 !py-2 text-xs sm:w-auto sm:flex-1"
+        <div className="mt-auto flex gap-2 pt-1">
+          <Link
+            to={`/product/${product.slug}`}
+            className="btn-outline flex-1 !px-3 !py-2.5 text-[10px]"
           >
-            Add to Cart
-          </button>
-          {waLink && !outOfStock ? (
+            Details
+          </Link>
+          {waLink ? (
             <a
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackEvent({ type: 'whatsapp_click', productSlug: product.slug })}
-              className="btn-whatsapp w-full whitespace-nowrap !px-3 !py-2 text-xs sm:w-auto sm:flex-1"
-              aria-label={`Order ${product.name} on WhatsApp`}
+              className="btn-whatsapp flex-1 !px-3 !py-2.5 text-[10px]"
+              aria-label={`Enquire about ${product.name}`}
             >
-              <WhatsAppGlyph className="h-4 w-4" />
-              Order
+              <WhatsAppGlyph className="h-4 w-4" /> Enquire
             </a>
-          ) : (
-            <Link
-              to={`/product/${product.slug}`}
-              className="btn-ghost w-full whitespace-nowrap !px-3 !py-2 text-xs sm:w-auto sm:flex-1"
-            >
-              Details
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </article>
